@@ -1,0 +1,35 @@
+steps:
+  # Step 1: Clone the GitHub repository
+  - name: "gcr.io/cloud-builders/git"
+    args:
+      ["clone", "https://github.com/nukem666/cloud-run-jobs-demo", "/workspace"]
+
+  # Step 2: Navigate to the app directory and build the Docker image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/python-app", "../."]
+    dir: "docker" # Specify the directory containing the Dockerfile
+
+  # Step 3: Push the Docker image to Google Container Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/python-app"]
+
+  # Step 4: Initialize Terraform
+  - name: "hashicorp/terraform:light"
+    entrypoint: "sh"
+    args:
+      - "-c"
+      - |
+        cd /workspace/infra/sandbox
+        terraform init
+
+  # Step 5: Apply Terraform configuration
+  - name: "hashicorp/terraform:light"
+    entrypoint: "sh"
+    args:
+      - "-c"
+      - |
+        cd /workspace/infra/sandbox
+        terraform apply -auto-approve
+
+images:
+  - "gcr.io/$PROJECT_ID/python-app"
