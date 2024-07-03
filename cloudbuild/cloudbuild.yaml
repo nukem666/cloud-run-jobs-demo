@@ -1,35 +1,51 @@
 steps:
   # Step 1: Clone the GitHub repository
-  - name: "gcr.io/cloud-builders/git"
+  - name: gcr.io/cloud-builders/git
     args:
-      ["clone", "https://github.com/nukem666/cloud-run-jobs-demo", "/workspace"]
+      - clone
+      - https://github.com/nukem666/cloud-run-jobs-demo
+      - cloud-run-jobs-demo
 
   # Step 2: Navigate to the app directory and build the Docker image
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/$PROJECT_ID/python-app", "../."]
-    dir: "docker" # Specify the directory containing the Dockerfile
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - australia-southeast1-docker.pkg.dev/$PROJECT_ID/repo/demo-app
+      - -f
+      - docker/Dockerfile
+      - .
+    dir: cloud-run-jobs-demo
 
   # Step 3: Push the Docker image to Google Container Registry
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/python-app"]
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - australia-southeast1-docker.pkg.dev/$PROJECT_ID/repo/demo-app
 
   # Step 4: Initialize Terraform
-  - name: "hashicorp/terraform:light"
-    entrypoint: "sh"
+  - name: hashicorp/terraform:light
+    entrypoint: terraform
     args:
-      - "-c"
-      - |
-        cd /workspace/infra/sandbox
-        terraform init
+      - init
+    dir: cloud-run-jobs-demo/infra/sandbox
 
   # Step 5: Apply Terraform configuration
-  - name: "hashicorp/terraform:light"
-    entrypoint: "sh"
+  - name: hashicorp/terraform:light
+    entrypoint: terraform
     args:
-      - "-c"
-      - |
-        cd /workspace/infra/sandbox
-        terraform apply -auto-approve
+      - apply
+      - -auto-approve
+    dir: cloud-run-jobs-demo/infra/sandbox
+
+  # Step 6: Copy the DAGs folder
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - storage
+      - cp
+      - -r
+      - cloud-run-jobs-demo/airflow/dags
+      - gs://australia-southeast1-demo-c-5f9ae33d-bucket/dags  # Update with your target Cloud Storage bucket or desired location
 
 images:
-  - "gcr.io/$PROJECT_ID/python-app"
+  - australia-southeast1-docker.pkg.dev/$PROJECT_ID/repo/demo-app
