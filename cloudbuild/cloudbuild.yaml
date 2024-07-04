@@ -1,10 +1,13 @@
+substitutions:
+  _DEMO_REPO: cloud-run-jobs-demo
+
 steps:
   # Step 1: Clone the GitHub repository
   - name: gcr.io/cloud-builders/git
     args:
       - clone
-      - https://github.com/nukem666/cloud-run-jobs-demo
-      - cloud-run-jobs-demo
+      - https://github.com/nukem666/${_DEMO_REPO}
+      - ${_DEMO_REPO}
 
   # Step 2: Navigate to the app directory and build the Docker image
   - name: gcr.io/cloud-builders/docker
@@ -15,9 +18,9 @@ steps:
       - -f
       - docker/Dockerfile
       - .
-    dir: cloud-run-jobs-demo
+    dir: ${_DEMO_REPO}
 
-  # Step 3: Push the Docker image to Google Container Registry
+  # Step 3: Push the Docker image to Google Artifact Registry
   - name: gcr.io/cloud-builders/docker
     args:
       - push
@@ -28,7 +31,7 @@ steps:
     entrypoint: terraform
     args:
       - init
-    dir: cloud-run-jobs-demo/infra/sandbox
+    dir: ${_DEMO_REPO}/infra/sandbox
 
   # Step 5: Apply Terraform configuration
   - name: hashicorp/terraform:light
@@ -36,7 +39,7 @@ steps:
     args:
       - apply
       - -auto-approve
-    dir: cloud-run-jobs-demo/infra/sandbox
+    dir: ${_DEMO_REPO}/infra/sandbox
 
   # Step 6: Copy the DAGs folder
   - name: gcr.io/cloud-builders/gcloud
@@ -44,8 +47,15 @@ steps:
       - storage
       - cp
       - -r
-      - cloud-run-jobs-demo/airflow/dags
-      - gs://australia-southeast1-demo-c-5f9ae33d-bucket/dags  # Update with your target Cloud Storage bucket or desired location
+      - ${_DEMO_REPO}/airflow/dags
+      - gs://australia-southeast1-demo-c-5f9ae33d-bucket/dags
 
-images:
-  - australia-southeast1-docker.pkg.dev/$PROJECT_ID/repo/demo-app
+  # Step 7: Deploy GCP Workflows configuration
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - workflows
+      - deploy
+      - cloud-run-job-workflow
+      - --source=${_DEMO_REPO}/workflows/cloud-run-job-workflow.yaml
+      - --location=australia-southeast1
+      - --project=$PROJECT_ID
