@@ -1,37 +1,39 @@
 substitutions:
-  _DEMO_REPO: cloud-run-jobs-demo
+  _DEMO_REPO_NAME: cloud-run-jobs-demo
+  _DEMO_REGION: australia-southeast1
+  _DEMO_COMPOSER_BUCKET: gs://australia-southeast1-demo-c-5f9ae33d-bucket/dags
 
 steps:
   # Step 1: Clone the GitHub repository
   - name: gcr.io/cloud-builders/git
     args:
       - clone
-      - https://github.com/nukem666/${_DEMO_REPO}
-      - ${_DEMO_REPO}
+      - https://github.com/nukem666/${_DEMO_REPO_NAME}
+      - ${_DEMO_REPO_NAME}
 
   # Step 2: Navigate to the app directory and build the Docker image
   - name: gcr.io/cloud-builders/docker
     args:
       - build
       - -t
-      - australia-southeast1-docker.pkg.dev/$PROJECT_ID/repo/demo-app
+      - ${_DEMO_REGION}-docker.pkg.dev/$PROJECT_ID/repo/demo-app
       - -f
       - docker/Dockerfile
       - .
-    dir: ${_DEMO_REPO}
+    dir: ${_DEMO_REPO_NAME}
 
   # Step 3: Push the Docker image to Google Artifact Registry
   - name: gcr.io/cloud-builders/docker
     args:
       - push
-      - australia-southeast1-docker.pkg.dev/$PROJECT_ID/repo/demo-app
+      - ${_DEMO_REGION}-docker.pkg.dev/$PROJECT_ID/repo/demo-app
 
   # Step 4: Initialize Terraform
   - name: hashicorp/terraform:light
     entrypoint: terraform
     args:
       - init
-    dir: ${_DEMO_REPO}/infra/sandbox
+    dir: ${_DEMO_REPO_NAME}/infra/sandbox
 
   # Step 5: Apply Terraform configuration
   - name: hashicorp/terraform:light
@@ -39,7 +41,7 @@ steps:
     args:
       - apply
       - -auto-approve
-    dir: ${_DEMO_REPO}/infra/sandbox
+    dir: ${_DEMO_REPO_NAME}/infra/sandbox
 
   # Step 6: Copy the DAGs folder
   - name: gcr.io/cloud-builders/gcloud
@@ -47,8 +49,8 @@ steps:
       - storage
       - cp
       - -r
-      - ${_DEMO_REPO}/airflow/dags
-      - gs://australia-southeast1-demo-c-5f9ae33d-bucket/dags
+      - ${_DEMO_REPO_NAME}/airflow/dags
+      - ${_DEMO_COMPOSER_BUCKET}
 
   # Step 7: Deploy GCP Workflows configuration
   - name: gcr.io/cloud-builders/gcloud
@@ -56,6 +58,6 @@ steps:
       - workflows
       - deploy
       - cloud-run-job-workflow
-      - --source=${_DEMO_REPO}/workflows/cloud-run-job-workflow.yaml
-      - --location=australia-southeast1
+      - --source=${_DEMO_REPO_NAME}/workflows/cloud-run-job-workflow.yaml
+      - --location=${_DEMO_REGION}
       - --project=$PROJECT_ID
