@@ -1,7 +1,7 @@
 substitutions:
   _DEMO_REPO_NAME: cloud-run-jobs-demo
   _DEMO_REGION: australia-southeast1
-  _DEMO_COMPOSER_BUCKET: gs://australia-southeast1-demo-c-5f9ae33d-bucket/dags
+  _DEMO_COMPOSER_BUCKET: gs://australia-southeast1-demo-c-5f9ae33d-bucket
 
 steps:
   # Step 1: Clone the GitHub repository

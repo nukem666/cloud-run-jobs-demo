@@ -11,8 +11,8 @@ resource "google_cloud_run_v2_job" "demo_job" {
   template {
     template {
       containers {
-        # Built-in sample image
-        image = "us-docker.pkg.dev/cloudrun/container/job:latest"
+        # Example app image
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/repo/demo-app:latest"
         resources {
           limits = {
             cpu    = "1"
