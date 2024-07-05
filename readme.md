@@ -6,14 +6,14 @@ This repository contains a demo for running jobs on Google Cloud Run. The projec
 
 ## Repository Structure
 
-- `app/`: Contains the main application code and Dockerfile for building the Docker image.
-- `cloudbuild/`: Deployment configuration.
+- `app/`: Contains a batch Python application, which logs environment variables and secrets set externally.
+- `cloudbuild/`: Configuration and scripts for deploying the demo components using Google Cloud Build.
+- `docker/`: Contains the Dockerfile for building the Docker image of the demo application.
 - `infra/`: Contains Terraform configurations for managing infrastructure.
   - `sandbox/`: Specific Terraform configurations for the sandbox environment.
 - `airflow/`: Contains Airflow configurations and DAGs.
-  - `dags/`: Directory for Airflow DAGs.
-- `workflows/`: Contains Google Cloud Workflows configurations.
-  - `cloud-run-job-workflow.yaml`: Workflow definition for orchestrating Cloud Run jobs.
+  - `dags/`: Directory for Airflow DAGs, with an example for orchestrating a Cloud Run Job.
+- `workflows/`: Contains Example Workflow definition for a Google Cloud Workflows service.
 
 ## Getting Started
 

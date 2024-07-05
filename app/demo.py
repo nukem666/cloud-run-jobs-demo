@@ -6,7 +6,7 @@ for key, value in os.environ.items():
         print(f"{key}: {value}")
 
 # Specify the directory path
-directory_path = "/secret/"
+directory_path = "/secrets"
 
 # Check if the directory exists
 if os.path.exists(directory_path) and os.path.isdir(directory_path):
